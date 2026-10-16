@@ -25,7 +25,6 @@ const tipos = [
   ["whey","Açaí Whey","💪"]
 ].map(([id,nome,emoji])=>({id,nome,emoji}));
 
-
 const dadosAdicionais = [
   ["Linhaça","Sementes e cereais",2,"🌾"],
   ["Chia","Sementes e cereais",2,"⚫"],
@@ -148,15 +147,18 @@ function mostrarPagina(nome) {
   });
 
   if(nome==="admin" && !adminLogado) nome="login";
+
   porId("pagina-"+nome).classList.remove("escondido");
 
   if(nome==="admin") renderizarAdmin();
+
   window.scrollTo({top:0,behavior:"smooth"});
 }
 
 function renderizarTamanhos() {
   porId("lista-tamanhos").innerHTML = tamanhos.map(t=>{
     const selecionado=t.id===tamanhoSelecionado;
+
     const limite=Number.isFinite(t.limite)
       ? `Máximo ${t.limite} adicionais`
       : "Sem limite configurado";
@@ -178,10 +180,13 @@ function renderizarTamanhos() {
 
 function selecionarTamanho(id) {
   tamanhoSelecionado=id;
+
   const limite=limiteAtual();
 
   while(adicionaisSelecionados.size>limite) {
-    adicionaisSelecionados.delete(Array.from(adicionaisSelecionados).pop());
+    adicionaisSelecionados.delete(
+      Array.from(adicionaisSelecionados).pop()
+    );
   }
 
   renderizarTamanhos();
@@ -192,9 +197,11 @@ function selecionarTamanho(id) {
 function renderizarTipos() {
   porId("lista-tipos").innerHTML=tipos.map(t=>{
     const selecionado=t.id===tipoSelecionado;
+
     return `<button type="button" class="opcao ${selecionado?"selecionado":""}"
       data-tipo="${t.id}" aria-pressed="${selecionado}">
-      <span class="emoji">${t.emoji}</span><strong>${t.nome}</strong>
+      <span class="emoji">${t.emoji}</span>
+      <strong>${t.nome}</strong>
     </button>`;
   }).join("");
 
@@ -218,9 +225,12 @@ function renderizarAdicionais() {
       <div class="grid">${itens.map(a=>{
         const marcado=adicionaisSelecionados.has(a.id);
         const limite=limiteAtual();
+
         const limiteAtingido=Number.isFinite(limite) &&
           adicionaisSelecionados.size>=limite;
-        const desativado=!tamanhoSelecionado || (!marcado && limiteAtingido);
+
+        const desativado=!tamanhoSelecionado ||
+          (!marcado && limiteAtingido);
 
         return `<button type="button"
           class="opcao ${marcado?"selecionado":""}"
@@ -234,13 +244,19 @@ function renderizarAdicionais() {
     </div>`;
   }).join("");
 
-  porId("lista-adicionais").querySelectorAll("[data-adicional]").forEach(b=>{
-    b.addEventListener("click",()=>alternarAdicional(b.dataset.adicional));
-  });
+  porId("lista-adicionais")
+    .querySelectorAll("[data-adicional]")
+    .forEach(b=>{
+      b.addEventListener("click",()=>{
+        alternarAdicional(b.dataset.adicional);
+      });
+    });
 
   const tamanho=tamanhoAtual();
+
   if(!tamanho) {
-    porId("aviso-limite").textContent="Escolha o tamanho do copo antes de selecionar adicionais.";
+    porId("aviso-limite").textContent=
+      "Escolha o tamanho do copo antes de selecionar adicionais.";
   } else if(Number.isFinite(tamanho.limite)) {
     porId("aviso-limite").textContent=
       `Copo de ${tamanho.volume}: ${adicionaisSelecionados.size} de ${tamanho.limite} adicionais selecionados.`;
@@ -252,6 +268,7 @@ function renderizarAdicionais() {
 
 function alternarAdicional(id) {
   const adicional=dadosAdicionais.find(a=>a.id===id);
+
   if(!adicional) return;
 
   if(adicionaisSelecionados.has(id)) {
@@ -267,41 +284,61 @@ function alternarAdicional(id) {
   }
 
   const limite=limiteAtual();
-  if(Number.isFinite(limite) && adicionaisSelecionados.size>=limite) {
-    alert(`O copo de ${tamanhoAtual().volume} permite no máximo ${limite} adicionais. Desmarque um para escolher outro.`);
+
+  if(Number.isFinite(limite) &&
+     adicionaisSelecionados.size>=limite) {
+    alert(
+      `O copo de ${tamanhoAtual().volume} permite no máximo ${limite} adicionais. Desmarque um para escolher outro.`
+    );
     return;
   }
 
   adicionaisSelecionados.add(id);
+
   renderizarAdicionais();
   atualizarResumo();
 }
 
 function calcularTotal() {
   const base=tamanhoAtual()?.preco || 0;
+
   return base+adicionaisAtuais().reduce((s,a)=>s+a.preco,0);
 }
 
 function atualizarResumo() {
   const tamanho=tamanhoAtual();
   const adicionais=adicionaisAtuais();
+  const subtotal=calcularTotal();
 
   porId("resumo-tamanho").textContent=tamanho
     ? `${tamanho.nome} (${tamanho.volume})`
     : "Não escolhido";
 
   porId("resumo-tipo").textContent=tipoAtual().nome;
+
   porId("resumo-quantidade").textContent=String(adicionais.length);
+
   porId("resumo-adicionais").textContent=adicionais.length
     ? adicionais.map(a=>`${a.nome} (${dinheiro(a.preco)})`).join(" · ")
     : "Nenhum adicional selecionado.";
 
-  porId("preco-total").textContent=dinheiro(calcularTotal());
+  porId("preco-total").textContent=dinheiro(subtotal);
+
+  const campoSubtotal=porId("subtotal-produtos");
+
+  if(campoSubtotal) {
+    campoSubtotal.textContent=dinheiro(subtotal);
+  }
+
+  atualizarValoresEntrega(subtotal);
 }
 
 function lerPedidos() {
   try {
-    const dados=JSON.parse(localStorage.getItem(CHAVE_PEDIDOS)||"[]");
+    const dados=JSON.parse(
+      localStorage.getItem(CHAVE_PEDIDOS)||"[]"
+    );
+
     return Array.isArray(dados)?dados:[];
   } catch {
     return [];
@@ -323,7 +360,6 @@ function gerarCodigo() {
 }
 
 function confirmarPedido() {
-  const nome=porId("nome-cliente").value.trim();
   porId("confirmacao").innerHTML="";
 
   if(!tamanhoAtual()) {
@@ -331,34 +367,54 @@ function confirmarPedido() {
     return;
   }
 
-  if(!nome) {
-    alert("Digite seu nome para confirmar o pedido.");
-    porId("nome-cliente").focus();
-    return;
-  }
+  if(!validarDadosEntrega()) return;
+
+  const nome=porId("nome").value.trim();
+  const telefone=porId("telefone").value.trim();
+  const bairro=porId("bairro").value.trim();
 
   const tamanho=tamanhoAtual();
   const adicionais=adicionaisAtuais();
 
-  if(Number.isFinite(tamanho.limite) && adicionais.length>tamanho.limite) {
-    alert(`O copo de ${tamanho.volume} permite no máximo ${tamanho.limite} adicionais.`);
+  if(Number.isFinite(tamanho.limite) &&
+     adicionais.length>tamanho.limite) {
+    alert(
+      `O copo de ${tamanho.volume} permite no máximo ${tamanho.limite} adicionais.`
+    );
     return;
   }
+
+  const subtotal=calcularTotal();
+  const taxaEntrega=calcularTaxaEntrega();
+  const total=subtotal+taxaEntrega;
 
   const pedido={
     codigo:gerarCodigo(),
     nome,
-    tamanho:{nome:tamanho.nome,volume:tamanho.volume,preco:tamanho.preco},
+    telefone,
+    bairro,
+    tamanho:{
+      nome:tamanho.nome,
+      volume:tamanho.volume,
+      preco:tamanho.preco
+    },
     tipo:tipoAtual().nome,
-    adicionais:adicionais.map(a=>({nome:a.nome,preco:a.preco})),
+    adicionais:adicionais.map(a=>({
+      nome:a.nome,
+      preco:a.preco
+    })),
     observacoes:porId("observacoes").value.trim(),
-    total:calcularTotal(),
+    subtotal,
+    taxaEntrega,
+    total,
     status:"Recebido",
     data:new Date().toISOString()
   };
 
   const pedidos=lerPedidos();
+
   pedidos.unshift(pedido);
+
   if(!salvarPedidos(pedidos)) return;
 
   porId("codigo-rastreio").value=pedido.codigo;
@@ -367,9 +423,13 @@ function confirmarPedido() {
     <div class="mensagem">
       <strong>Pedido registrado com sucesso!</strong><br>
       Código: <strong>${escapar(pedido.codigo)}</strong><br>
-      Total: <strong>${dinheiro(pedido.total)}</strong><br>
+      Subtotal dos produtos: <strong>${dinheiro(pedido.subtotal)}</strong><br>
+      Taxa de entrega: <strong>${dinheiro(pedido.taxaEntrega)}</strong><br>
+      Total do pedido: <strong>${dinheiro(pedido.total)}</strong><br>
       Guarde o código para consultar o status.
-      <button class="botao largura-total" id="acompanhar-novo">Rastrear meu pedido</button>
+      <button type="button" class="botao largura-total" id="acompanhar-novo">
+        Rastrear meu pedido
+      </button>
     </div>`;
 
   porId("acompanhar-novo").addEventListener("click",()=>{
@@ -379,22 +439,29 @@ function confirmarPedido() {
 
   adicionaisSelecionados.clear();
   porId("observacoes").value="";
+
   renderizarAdicionais();
   atualizarResumo();
 }
 
 function consultarPedido(codigoInformado) {
   const codigo=String(codigoInformado||"").trim().toUpperCase();
-  const pedido=lerPedidos().find(p=>p.codigo.toUpperCase()===codigo);
+
+  const pedido=lerPedidos().find(
+    p=>String(p.codigo).toUpperCase()===codigo
+  );
+
   const area=porId("resultado-rastreio");
 
   if(!codigo) {
-    area.innerHTML='<p class="mensagem erro">Digite o código do pedido.</p>';
+    area.innerHTML=
+      '<p class="mensagem erro">Digite o código do pedido.</p>';
     return;
   }
 
   if(!pedido) {
-    area.innerHTML='<p class="mensagem erro">Pedido não encontrado neste navegador. Verifique o código.</p>';
+    area.innerHTML=
+      '<p class="mensagem erro">Pedido não encontrado neste navegador. Verifique o código.</p>';
     return;
   }
 
@@ -402,6 +469,7 @@ function consultarPedido(codigoInformado) {
   const indice=etapas.indexOf(pedido.status);
 
   let progresso="";
+
   if(pedido.status==="Cancelado") {
     progresso='<li class="concluido">Pedido cancelado.</li>';
   } else {
@@ -414,15 +482,53 @@ function consultarPedido(codigoInformado) {
     <article class="cartao-pedido">
       <p class="eyebrow">PEDIDO ${escapar(pedido.codigo)}</p>
       <h3>Olá, ${escapar(pedido.nome)}!</h3>
-      <p><strong>Tamanho:</strong> ${escapar(pedido.tamanho.nome)} (${escapar(pedido.tamanho.volume)})</p>
+
+      <p><strong>Tamanho:</strong>
+        ${escapar(pedido.tamanho.nome)}
+        (${escapar(pedido.tamanho.volume)})
+      </p>
+
       <p><strong>Tipo:</strong> ${escapar(pedido.tipo)}</p>
+
       <p><strong>Adicionais:</strong> ${pedido.adicionais.length
-        ?pedido.adicionais.map(a=>escapar(a.nome)).join(", "):"Nenhum"}</p>
-      ${pedido.observacoes?`<p><strong>Observações:</strong> ${escapar(pedido.observacoes)}</p>`:""}
+        ?pedido.adicionais.map(a=>escapar(a.nome)).join(", ")
+        :"Nenhum"}
+      </p>
+
+      ${pedido.telefone
+        ?`<p><strong>Telefone:</strong> ${escapar(pedido.telefone)}</p>`
+        :""
+      }
+
+      ${pedido.bairro
+        ?`<p><strong>Bairro:</strong> ${escapar(pedido.bairro)}</p>`
+        :""
+      }
+
+      ${pedido.observacoes
+        ?`<p><strong>Observações:</strong> ${escapar(pedido.observacoes)}</p>`
+        :""
+      }
+
+      ${pedido.subtotal!==undefined
+        ?`<p><strong>Subtotal dos produtos:</strong> ${dinheiro(pedido.subtotal)}</p>`
+        :""
+      }
+
+      ${pedido.taxaEntrega!==undefined
+        ?`<p><strong>Taxa de entrega:</strong> ${dinheiro(pedido.taxaEntrega)}</p>`
+        :""
+      }
+
       <p><strong>Total:</strong> ${dinheiro(pedido.total)}</p>
       <p><strong>Status:</strong> ${escapar(pedido.status)}</p>
+
       <ul class="progresso">${progresso}</ul>
-      <small>Pedido registrado em ${new Date(pedido.data).toLocaleString("pt-BR")}</small>
+
+      <small>
+        Pedido registrado em
+        ${new Date(pedido.data).toLocaleString("pt-BR")}
+      </small>
     </article>`;
 }
 
@@ -435,10 +541,14 @@ function renderizarAdmin() {
   const pedidos=lerPedidos();
 
   porId("stat-total").textContent=pedidos.length;
+
   porId("stat-andamento").textContent=pedidos.filter(p=>
-    !["Concluído","Cancelado"].includes(p.status)).length;
+    !["Concluído","Cancelado"].includes(p.status)
+  ).length;
+
   porId("stat-concluidos").textContent=pedidos.filter(p=>
-    p.status==="Concluído").length;
+    p.status==="Concluído"
+  ).length;
 
   if(!pedidos.length) {
     porId("lista-pedidos-admin").innerHTML=
@@ -449,29 +559,80 @@ function renderizarAdmin() {
   porId("lista-pedidos-admin").innerHTML=pedidos.map(p=>`
     <article class="cartao-pedido">
       <p class="eyebrow">${escapar(p.codigo)}</p>
+
       <h3>${escapar(p.nome)} · ${dinheiro(p.total)}</h3>
-      <p><strong>Tamanho:</strong> ${escapar(p.tamanho.nome)} (${escapar(p.tamanho.volume)})</p>
+
+      <p><strong>Tamanho:</strong>
+        ${escapar(p.tamanho.nome)}
+        (${escapar(p.tamanho.volume)})
+      </p>
+
       <p><strong>Tipo:</strong> ${escapar(p.tipo)}</p>
+
       <p><strong>Adicionais:</strong> ${p.adicionais.length
-        ?p.adicionais.map(a=>escapar(a.nome)).join(", "):"Nenhum"}</p>
-      ${p.observacoes?`<p><strong>Observações:</strong> ${escapar(p.observacoes)}</p>`:""}
-      <p><strong>Data:</strong> ${new Date(p.data).toLocaleString("pt-BR")}</p>
+        ?p.adicionais.map(a=>escapar(a.nome)).join(", ")
+        :"Nenhum"}
+      </p>
+
+      ${p.telefone
+        ?`<p><strong>Telefone:</strong> ${escapar(p.telefone)}</p>`
+        :""
+      }
+
+      ${p.bairro
+        ?`<p><strong>Bairro:</strong> ${escapar(p.bairro)}</p>`
+        :""
+      }
+
+      ${p.subtotal!==undefined
+        ?`<p><strong>Subtotal dos produtos:</strong> ${dinheiro(p.subtotal)}</p>`
+        :""
+      }
+
+      ${p.taxaEntrega!==undefined
+        ?`<p><strong>Taxa de entrega:</strong> ${dinheiro(p.taxaEntrega)}</p>`
+        :""
+      }
+
+      ${p.observacoes
+        ?`<p><strong>Observações:</strong> ${escapar(p.observacoes)}</p>`
+        :""
+      }
+
+      <p><strong>Data:</strong>
+        ${new Date(p.data).toLocaleString("pt-BR")}
+      </p>
+
       <label for="status-${escapar(p.codigo)}">Status do pedido</label>
-      <select id="status-${escapar(p.codigo)}" data-status="${escapar(p.codigo)}">
-        ${statusPedidos.map(s=>`<option ${p.status===s?"selected":""}>${s}</option>`).join("")}
+
+      <select id="status-${escapar(p.codigo)}"
+        data-status="${escapar(p.codigo)}">
+        ${statusPedidos.map(s=>
+          `<option ${p.status===s?"selected":""}>${s}</option>`
+        ).join("")}
       </select>
     </article>
   `).join("");
 
-  porId("lista-pedidos-admin").querySelectorAll("[data-status]").forEach(select=>{
-    select.addEventListener("change",()=>{
-      const todos=lerPedidos();
-      const pedido=todos.find(p=>p.codigo===select.dataset.status);
-      if(!pedido) return;
-      pedido.status=select.value;
-      if(salvarPedidos(todos)) renderizarAdmin();
+  porId("lista-pedidos-admin")
+    .querySelectorAll("[data-status]")
+    .forEach(select=>{
+      select.addEventListener("change",()=>{
+        const todos=lerPedidos();
+
+        const pedido=todos.find(
+          p=>p.codigo===select.dataset.status
+        );
+
+        if(!pedido) return;
+
+        pedido.status=select.value;
+
+        if(salvarPedidos(todos)) {
+          renderizarAdmin();
+        }
+      });
     });
-  });
 }
 
 porId("form-rastreio").addEventListener("submit",evento=>{
@@ -504,7 +665,97 @@ function sairAdmin() {
   mostrarPagina("pedido");
 }
 
+function calcularTaxaEntrega() {
+  const campoBairro=porId("bairro");
+
+  if(!campoBairro) return 10;
+
+  const bairro=campoBairro.value
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+  return bairro==="centro" ? 5 : 10;
+}
+
+function validarDadosEntrega() {
+  const campoNome=porId("nome");
+  const campoTelefone=porId("telefone");
+  const campoBairro=porId("bairro");
+
+  if(!campoNome || !campoTelefone || !campoBairro) {
+    alert("Não foi possível encontrar os campos de entrega no HTML.");
+    return false;
+  }
+
+  const nome=campoNome.value.trim();
+  const telefone=campoTelefone.value.trim();
+  const bairro=campoBairro.value.trim();
+
+  if(!nome || !telefone || !bairro) {
+    alert("Preencha nome, telefone com DDD e bairro.");
+
+    if(!nome) campoNome.focus();
+    else if(!telefone) campoTelefone.focus();
+    else campoBairro.focus();
+
+    return false;
+  }
+
+  const numero=telefone.replace(/\D/g, "");
+
+  if(!/^[1-9]{2}[2-9]\d{7,8}$/.test(numero)) {
+    alert("Digite um telefone válido com DDD. Ex.: (41) 99999-9999");
+    campoTelefone.focus();
+    return false;
+  }
+
+  return true;
+}
+
+function calcularTotalPedido(subtotal) {
+  return Number(subtotal)+calcularTaxaEntrega();
+}
+
+function formatarReais(valor) {
+  return Number(valor).toLocaleString("pt-BR",{
+    style:"currency",
+    currency:"BRL"
+  });
+}
+
+function atualizarValoresEntrega(subtotal) {
+  const campoTaxa=porId("taxaEntrega");
+  const campoTotal=porId("totalFinal");
+
+  const taxa=calcularTaxaEntrega();
+  const valorSubtotal=Number(subtotal)||0;
+  const total=valorSubtotal+taxa;
+
+  if(campoTaxa) {
+    campoTaxa.textContent="Taxa de entrega: "+formatarReais(taxa);
+  }
+
+  if(campoTotal) {
+    campoTotal.textContent="Total do pedido: "+formatarReais(total);
+  }
+
+  return total;
+}
+
+
 renderizarTamanhos();
 renderizarTipos();
 renderizarAdicionais();
 atualizarResumo();
+
+if(porId("bairro")) {
+  porId("bairro").addEventListener("input",()=>{
+    atualizarResumo();
+  });
+
+  porId("bairro").addEventListener("change",()=>{
+    atualizarResumo();
+  });
+}
