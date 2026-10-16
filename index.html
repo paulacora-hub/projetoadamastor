@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#64256f">
+<title>Açaí da Vila | Monte seu açaí</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+
+<body>
+
+<header>
+  <a class="logo" href="#" onclick="mostrarPagina('pedido');return false">
+    🍇 Açaí da Vila
+  </a>
+  <nav>
+    <button onclick="mostrarPagina('pedido')">Fazer pedido</button>
+    <button onclick="mostrarPagina('rastreio')">Rastrear pedido</button>
+    <button onclick="mostrarPagina('login')">Administração</button>
+  </nav>
+</header>
+
+<main>
+
+<section id="pagina-pedido">
+  <div class="hero">
+    <div class="eyebrow">FEITO DO SEU JEITO</div>
+    <h1>Seu açaí, sua combinação.</h1>
+    <p>Escolha seu tamanho favorito, personalize seu açaí e descubra sua combinação perfeita.</p>
+    <button class="botao" onclick="document.getElementById('tamanhos').scrollIntoView({behavior:'smooth'})">
+      Montar meu açaí
+    </button>
+  </div>
+
+  <section class="panel" id="tamanhos">
+    <h2>01. Escolha o tamanho</h2>
+    <p class="subtitulo">Cada tamanho possui seu próprio limite de adicionais.</p>
+    <div class="grid" id="lista-tamanhos"></div>
+  </section>
+
+  <section class="panel">
+    <h2>02. Escolha o tipo de açaí</h2>
+    <p class="subtitulo">Selecione uma das nossas combinações.</p>
+    <div class="grid" id="lista-tipos"></div>
+  </section>
+
+  <section class="panel">
+    <h2>03. Escolha os adicionais</h2>
+    <p class="subtitulo">Selecione os ingredientes que deseja adicionar ao seu copo.</p>
+    <div id="aviso-limite" class="aviso" aria-live="polite">
+      Primeiro, escolha o tamanho do copo.
+    </div>
+    <div id="lista-adicionais"></div>
+  </section>
+
+  <section class="panel">
+    <h2>04. Finalize seu pedido</h2>
+
+    <label for="nome-cliente">Seu nome</label>
+    <input id="nome-cliente" maxlength="80" autocomplete="name" placeholder="Digite seu nome">
+
+    <label for="observacoes">Observações (opcional)</label>
+    <textarea id="observacoes" rows="2" maxlength="250" placeholder="Alguma observação para seu pedido?"></textarea>
+
+    <div class="resumo">
+      <h3>Resumo do pedido</h3>
+      <div class="linha"><span>Tamanho</span><strong id="resumo-tamanho">Não escolhido</strong></div>
+      <div class="linha"><span>Tipo de açaí</span><strong id="resumo-tipo">Normal (puro)</strong></div>
+      <div class="linha"><span>Quantidade de adicionais</span><strong id="resumo-quantidade">0</strong></div>
+      <p id="resumo-adicionais">Nenhum adicional selecionado.</p>
+      <div class="total"><span>Total</span><span id="preco-total">R$ 0,00</span></div>
+      <button class="botao largura-total" onclick="confirmarPedido()">Confirmar pedido</button>
+      <div id="confirmacao" aria-live="polite"></div>
+    </div>
+  </section>
+</section>
+
+<section id="pagina-rastreio" class="escondido">
+  <div class="panel centralizado">
+    <div class="eyebrow">ACOMPANHAMENTO</div>
+    <h1>Rastreie seu pedido</h1>
+    <p class="subtitulo">Digite o código recebido ao confirmar o pedido.</p>
+    <form id="form-rastreio">
+      <label for="codigo-rastreio">Código do pedido</label>
+      <input id="codigo-rastreio" placeholder="Ex.: ACA123456" required>
+      <button class="botao largura-total">Consultar pedido</button>
+    </form>
+    <div id="resultado-rastreio" aria-live="polite"></div>
+  </div>
+</section>
+
+<section id="pagina-login" class="escondido">
+  <div class="panel centralizado">
+    <div class="eyebrow">ACESSO RESTRITO</div>
+    <h1>Área administrativa</h1>
+    <p class="subtitulo">Entre com suas credenciais para gerenciar os pedidos.</p>
+    <form id="form-login">
+      <label for="login-admin">Login</label>
+      <input id="login-admin" autocomplete="username" required>
+      <label for="senha-admin">Senha</label>
+      <input id="senha-admin" type="password" autocomplete="current-password" required>
+      <button class="botao largura-total">Entrar</button>
+    </form>
+    <p id="mensagem-login" aria-live="polite"></p>
+  </div>
+</section>
+
+<section id="pagina-admin" class="escondido">
+  <div class="panel">
+    <h1>Painel administrativo</h1>
+    <p class="subtitulo">Gerencie os pedidos recebidos neste navegador.</p>
+    <button class="botao botao-secundario" onclick="sairAdmin()">Sair</button>
+
+    <div class="estatisticas">
+      <div class="estatistica">Total de pedidos<strong id="stat-total">0</strong></div>
+      <div class="estatistica">Em andamento<strong id="stat-andamento">0</strong></div>
+      <div class="estatistica">Concluídos<strong id="stat-concluidos">0</strong></div>
+    </div>
+
+    <button class="botao" onclick="renderizarAdmin()">Atualizar lista</button>
+    <div id="lista-pedidos-admin"></div>
+  </div>
+</section>
+
+</main>
+
+<footer><strong>Açaí do Adamastor</strong> · Monte sua combinação favorita.</footer>
+
+</body>
+</html>
