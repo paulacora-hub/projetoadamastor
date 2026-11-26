@@ -412,3 +412,41 @@
       scroll-behavior: auto !important;
     }
   }
+  .area-logo {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 10px 20px 25px;
+    box-sizing: border-box;
+    background: linear-gradient(180deg, #340339);
+    border-bottom: 3px solid #f6bd16;
+}
+
+.area-logo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 5px 10px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.logo {
+    display: block;
+    width: 130px;
+    max-width: 70%;
+    height: auto;
+    object-fit: contain;
+}
+.imagem-adicional {
+    width: 65px;
+    height: 65px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 8px;
+  }
+
+.opcao {
+    text-align: center;
+}
